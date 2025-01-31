@@ -1,32 +1,47 @@
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { auth } from "../lib/firebaseConfig";
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/router";
+import styles from "../styles/login.module.css"; // Importando o CSS Module
 
 export default function Login() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        router.push("/dashboard"); // Redireciona para o painel após login
+        router.push("/dashboard");
       }
     });
+
+    return () => unsubscribe();
   }, [router]);
 
   const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
-
-  const handleLogout = async () => {
-    await signOut(auth);
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 mt-10">
-      <button onClick={handleLogin} className="bg-blue-500 text-white px-4 py-2 rounded">Login com Google</button>
-      <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Sair</button>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Bem-vindo!</h1>
+        <p className={styles.subtitle}>Acesse sua conta para continuar</p>
+        <button 
+          onClick={handleLogin} 
+          className={styles.button} 
+          disabled={loading}
+        >
+          {loading ? "Entrando..." : "Entrar com Google"}
+        </button>
+      </div>
     </div>
   );
 }
