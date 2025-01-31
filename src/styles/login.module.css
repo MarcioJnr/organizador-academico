@@ -1,0 +1,56 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: gray;
+  }
+  
+  .card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #374151;
+    margin-bottom: 1rem;
+  }
+  
+  .subtitle {
+    color: #6b7280;
+    margin-bottom: 1rem;
+  }
+  
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.75rem;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    border: none;
+  }
+  
+  .button:hover {
+    background-color: #2563eb;
+  }
+  
+  .button:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+  }
+  
