@@ -5,14 +5,18 @@ import styles from "../../styles/course.module.css"; // Ajuste o caminho do CSS 
 export default function SemestreDetalhes() {
   const router = useRouter();
   const { semestre } = router.query; // Obtém o semestre da URL
-  const [itens, setItens] = useState([]);
-  const [itemNome, setItemNome] = useState("");
+  const [disciplinas, setDisciplinas] = useState([]);
+  const [disciplinaNome, setDisciplinaNome] = useState("");
 
-  const handleAddItem = () => {
-    if (itemNome.trim() !== "") {
-      setItens((prev) => [...prev, itemNome]);
-      setItemNome("");
+  const handleAddDisciplina = () => {
+    if (disciplinaNome.trim() !== "") {
+      setDisciplinas((prev) => [...prev, disciplinaNome]);
+      setDisciplinaNome("");
     }
+  };
+
+  const handleNavigateToDisciplina = (disciplina) => {
+    router.push(`/disciplina/${encodeURIComponent(disciplina)}`);
   };
 
   return (
@@ -23,24 +27,28 @@ export default function SemestreDetalhes() {
         <div className={styles.form}>
           <input
             type="text"
-            value={itemNome}
-            onChange={(e) => setItemNome(e.target.value)}
-            placeholder="Nome do item"
+            value={disciplinaNome}
+            onChange={(e) => setDisciplinaNome(e.target.value)}
+            placeholder="Nome da disciplina"
             className={styles.input}
           />
-          <button onClick={handleAddItem} className={`${styles.button} ${styles.addButton}`}>
-            Adicionar Item
+          <button onClick={handleAddDisciplina} className={`${styles.button} ${styles.addButton}`}>
+            Adicionar Disciplina
           </button>
         </div>
 
-        <h2 className={styles.subTitle}>Itens cadastrados:</h2>
+        <h2 className={styles.subTitle}>Disciplinas cadastradas:</h2>
         <ul>
-          {itens.length === 0 ? (
-            <li className={styles.semestreListItem}>Nenhum item cadastrado.</li>
+          {disciplinas.length === 0 ? (
+            <li className={styles.semestreListItem}>Nenhuma disciplina cadastrada.</li>
           ) : (
-            itens.map((item, index) => (
-              <li key={index} className={styles.semestreListItem}>
-                {item}
+            disciplinas.map((disciplina, index) => (
+              <li
+                key={index}
+                className={styles.semestreListItem}
+                onClick={() => handleNavigateToDisciplina(disciplina)}
+              >
+                {disciplina}
               </li>
             ))
           )}
