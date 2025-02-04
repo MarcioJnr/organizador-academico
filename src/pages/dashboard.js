@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { auth } from "../lib/firebaseConfig";
 import { signOut } from "firebase/auth";
+import styles from "../styles/dashboard.module.css"; // Importa o CSS
 
 export default function Dashboard() {
   const router = useRouter();
@@ -29,12 +30,37 @@ export default function Dashboard() {
     }
   };
 
+  const handleNavigateToCourse = () => {
+    router.push("/curso"); // Navega para a página de visão de curso
+  };
+
   if (!user) return <p>Carregando...</p>;
 
   return (
-    <div className="flex flex-col items-center gap-4 mt-10">
-      <h1 className="text-2xl font-bold">Bem-vindo, {user.displayName}!</h1>
-      <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Sair</button>
+    <div className={styles.dashboardContainer}>
+      <div className={styles.dashboardCard}>
+        <h1 className={styles.dashboardTitle}>
+          Bem-vindo, {user.displayName}!
+        </h1>
+        
+        <div className="flex flex-col items-center gap-4">
+          {/* Botão para visão de curso */}
+          <button 
+            onClick={handleNavigateToCourse} 
+            className={`${styles.button} ${styles.viewCourseButton}`}
+          >
+            Ver Visão de Curso
+          </button>
+
+          {/* Botão de logout */}
+          <button
+            onClick={handleLogout}
+            className={`${styles.button} ${styles.logoutButton}`}
+          >
+            Sair
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

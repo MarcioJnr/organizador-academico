@@ -1,0 +1,96 @@
+/* Estilos para o layout do dashboard */
+.dashboardContainer {
+    min-height: 100vh;
+    background: linear-gradient(to right, #3b82f6, #14b8a6); /* Gradiente azul para verde */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  
+  /* Cartão centralizado */
+  .dashboardCard {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    max-width: 25rem;
+    width: 100%;
+  }
+  
+  /* Título */
+  .dashboardTitle {
+    font-size: 2rem;
+    font-weight: 800;
+    text-align: center;
+    color: #4b5563; /* Cor cinza escuro */
+    margin-bottom: 1rem;
+  }
+  
+  /* Botões */
+  .button {
+    width: 100%;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 60;
+    align-items: center;
+  }
+  
+  /* Botão de visão de curso */
+  .viewCourseButton {
+    background-color: #2563eb; /* Azul */
+    align-self: center;
+    color: white;
+  }
+  
+  .viewCourseButton:hover {
+    background-color: #1d4ed8; /* Azul mais escuro */
+  }
+  
+  /* Botão de logout */
+  .logoutButton {
+    background-color: #ef4444; /* Vermelho */
+    color: white;
+  }
+  
+  .logoutButton:hover {
+    background-color: #dc2626; /* Vermelho mais escuro */
+  }
+
+  /* Estilos específicos para a página de curso */
+.semestreInput {
+    border: 2px solid #2563eb; /* Cor do contorno */
+    border-radius: 8px;
+    padding: 0.5rem;
+    width: 80%;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+  
+  .addButton {
+    background-color: #2563eb; /* Azul */
+    color: white;
+    padding: 0.75rem;
+    border-radius: 8px;
+    width: 80%;
+    cursor: pointer;
+  }
+  
+  .addButton:hover {
+    background-color: #1d4ed8; /* Azul mais escuro */
+  }
+  
+  .semestreList {
+    margin-top: 1rem;
+  }
+  
+  .semestreItem {
+    font-size: 1.1rem;
+    color: #4b5563;
+  }
+  
+  
