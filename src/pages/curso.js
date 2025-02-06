@@ -1,75 +1,172 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { auth } from "../lib/firebaseConfig";
 import styles from "../styles/course.module.css";
 
 export default function Curso() {
-  const [semestres, setSemestres] = useState([]);
-  const [semestreNome, setSemestreNome] = useState("");
-  const router = useRouter();
+    const [cursos, setCursos] = useState([]);
+    const [semestres, setSemestres] = useState([]);
+    const [semestreNome, setSemestreNome] = useState("");
+    const [semestreCodigo, setSemestreCodigo] = useState("");
+    const [selectedCurso, setSelectedCurso] = useState(null);
+    const [error, setError] = useState("");
+    const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/login");
-      }
-    });
+    // Carregar cursos do localStorage ao montar a página
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedCursos = JSON.parse(
+                localStorage.getItem("cursos") || "[]"
+            );
+            setCursos(storedCursos);
+        }
+    }, []);
 
-    return () => unsubscribe();
-  }, [router]);
+    // Carregar semestres automaticamente quando um curso for selecionado
+    useEffect(() => {
+        if (selectedCurso) {
+            fetch(`http://localhost:3000/semestres/curso/${selectedCurso.id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: localStorage.token,
+                },
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.error) {
+                        setError(data.error);
+                    } else {
+                        setSemestres(data);
+                    }
+                })
+                .catch(() => setError("Erro ao carregar semestres"));
+        }
+    }, [selectedCurso]); // Atualiza os semestres sempre que o curso for alterado
 
-  const handleAddSemestre = () => {
-    if (semestreNome.trim() !== "") {
-      setSemestres((prev) => [...prev, { nome: semestreNome }]);
-      setSemestreNome("");
-    }
-  };
+    const handleAddSemestre = async () => {
+        if (!selectedCurso) {
+            setError("Selecione um curso antes de adicionar um semestre.");
+            return;
+        }
 
-  const handleNavigateToSemestre = (nome) => {
-    router.push(`/semestre/${encodeURIComponent(nome)}`);
-  };
+        if (semestreNome.trim() === "" || semestreCodigo.trim() === "") {
+            setError("Preencha todos os campos.");
+            return;
+        }
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Cadastro de Semestres</h1>
+        try {
+            const response = await fetch(
+                `http://localhost:3000/semestres/curso/${selectedCurso.id}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: localStorage.token,
+                    },
+                    body: JSON.stringify({
+                        nome: semestreNome,
+                        ano: "2025",
+                    }),
+                }
+            );
 
-        <div className={styles.form}>
-          <input
-            type="text"
-            value={semestreNome}
-            onChange={(e) => setSemestreNome(e.target.value)}
-            placeholder="Nome do semestre"
-            className={styles.input}
-          />
-          <button onClick={handleAddSemestre} className={`${styles.button} ${styles.addButton}`}>
-            Adicionar Semestre
-          </button>
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Erro ao adicionar semestre");
+            }
+
+            setSemestres((prev) => [...prev, data]);
+            setSemestreNome("");
+            setSemestreCodigo("");
+            setError("");
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    const handleNavigateToSemestre = (id) => {
+        router.push(`/semestre/${id}`);
+    };
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <h1 className={styles.title}>Cadastro de Semestres</h1>
+
+                <div className={styles.form}>
+                    <label>Selecione um curso:</label>
+                    <select
+                        value={selectedCurso?.id || ""}
+                        onChange={(e) =>
+                            setSelectedCurso(
+                                cursos.find(
+                                    (curso) => curso.id == e.target.value
+                                )
+                            )
+                        }
+                        className={styles.input}
+                    >
+                        <option value="">-- Selecione um curso --</option>
+                        {cursos.map((curso) => (
+                            <option key={curso.id} value={curso.id}>
+                                {curso.nome}
+                            </option>
+                        ))}
+                    </select>
+
+                    <input
+                        type="text"
+                        value={semestreNome}
+                        onChange={(e) => setSemestreNome(e.target.value)}
+                        placeholder="Nome do semestre"
+                        className={styles.input}
+                    />
+                    <input
+                        type="text"
+                        value={semestreCodigo}
+                        onChange={(e) => setSemestreCodigo(e.target.value)}
+                        placeholder="Código do semestre"
+                        className={styles.input}
+                    />
+                    <button
+                        onClick={handleAddSemestre}
+                        className={`${styles.button} ${styles.addButton}`}
+                    >
+                        Adicionar Semestre
+                    </button>
+                    {error && <p className={styles.error}>{error}</p>}
+                </div>
+
+                {/* Lista de Semestres */}
+                <div className={styles.semestreList}>
+                    <h2 className={styles.subTitle}>Semestres Cadastrados:</h2>
+                    <ul>
+                        {semestres.length === 0 ? (
+                            <li className={styles.semestreListItem}>
+                                Não há semestres cadastrados.
+                            </li>
+                        ) : (
+                            semestres.map((semestre) => (
+                                <li
+                                    key={semestre.id}
+                                    className={styles.semestreListItem}
+                                    onClick={() =>
+                                        handleNavigateToSemestre(semestre.id)
+                                    }
+                                >
+                                    {semestre.nome} - {semestre.codigo} (ID:{" "}
+                                    {semestre.id})
+                                </li>
+                            ))
+                        )}
+                    </ul>
+                </div>
+
+                <button className={`${styles.button} ${styles.logoutButton}`}>
+                    Sair
+                </button>
+            </div>
         </div>
-
-        <div className={styles.semestreList}>
-          <h2 className={styles.subTitle}>Semestres Cadastrados:</h2>
-          <ul>
-            {semestres.length === 0 ? (
-              <li className={styles.semestreListItem}>Não há semestres cadastrados.</li>
-            ) : (
-              semestres.map((semestre, index) => (
-                <li
-                  key={index}
-                  className={styles.semestreListItem}
-                  onClick={() => handleNavigateToSemestre(semestre.nome)}
-                >
-                  {semestre.nome}
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
-
-        <button onClick={() => auth.signOut()} className={`${styles.button} ${styles.logoutButton}`}>
-          Sair
-        </button>
-      </div>
-    </div>
-  );
+    );
 }
