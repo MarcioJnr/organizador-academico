@@ -2,20 +2,24 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import styles from "../styles/login.module.css"; // Usando o mesmo estilo
 
-export default function Login() {
+export default function Register() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Função de login (mesma lógica que você já tinha)
-  const handleLogin = async () => {
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem!");
+      return;
+    }
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
+      const response = await fetch("http://localhost:3000/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -26,12 +30,11 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Erro ao fazer login");
+        throw new Error(data.message || "Erro ao cadastrar");
       }
 
-      // Armazenar o token e redirecionar para o dashboard
-      localStorage.setItem("token", data.token);
-      router.push("/dashboard");
+      // Após o cadastro, redirecionar para a página de login
+      router.push("/login");
     } catch (error) {
       setError(error.message);
     } finally {
@@ -42,8 +45,8 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Bem-vindo!</h1>
-        <p className={styles.subtitle}>Acesse sua conta para continuar</p>
+        <h1 className={styles.title}>Cadastro</h1>
+        <p className={styles.subtitle}>Crie uma nova conta</p>
 
         <input
           type="email"
@@ -61,21 +64,28 @@ export default function Login() {
           className={styles.input}
         />
 
+        <input
+          type="password"
+          placeholder="Confirmar Senha"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className={styles.input}
+        />
+
         {error && <p className={styles.error}>{error}</p>}
 
         <button
-          onClick={handleLogin}
+          onClick={handleRegister}
           className={styles.button}
           disabled={loading}
         >
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? "Cadastrando..." : "Cadastrar"}
         </button>
 
-        {/* Link para a tela de Cadastro */}
         <div className={styles.registerLink}>
-          <p>Não tem uma conta?</p>
-          <button onClick={() => router.push("/register")} className={styles.linkButton}>
-            Cadastre-se
+          <p>Já tem uma conta?</p>
+          <button onClick={() => router.push("/login")} className={styles.linkButton}>
+            Faça Login
           </button>
         </div>
       </div>
