@@ -1,55 +1,123 @@
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import styles from "../../styles/course.module.css";
 
 export default function DisciplinaDetalhes() {
-  const router = useRouter();
-  const { disciplina } = router.query;
-  const [itens, setItens] = useState([]);
-  const [itemNome, setItemNome] = useState("");
+    const router = useRouter();
+    const [nomeDisciplina, setNomeDisciplina] = useState("");
+    const [itens, setItens] = useState([]);
+    const [itemNome, setItemNome] = useState("");
+    const [error, setError] = useState("");
 
-  const handleAddItem = () => {
-    if (itemNome.trim() !== "") {
-      setItens((prev) => [...prev, itemNome]);
-      setItemNome("");
-    }
-  };
+    // Carregar o ID e o nome da disciplina do localStorage
+    useEffect(() => {
+        const id = localStorage.getItem("disciplinaId");
+        const nome = localStorage.getItem("disciplinaNome");
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>{disciplina || "Carregando..."}</h1>
+        if (id && nome) {
+            setNomeDisciplina(nome); // Define o nome da disciplina
+        } else {
+            setError("Disciplina não encontrada.");
+            router.push(`/semestre/${localStorage.getItem("semestreId")}`); // Redireciona de volta se não houver dados
+        }
+    }, [router]);
 
-        <div className={styles.form}>
-          <input
-            type="text"
-            value={itemNome}
-            onChange={(e) => setItemNome(e.target.value)}
-            placeholder="Nome do item"
-            className={styles.input}
-          />
-          <button onClick={handleAddItem} className={`${styles.button} ${styles.addButton}`}>
-            Adicionar Item
-          </button>
+    const handleAddItem = () => {
+        if (itemNome.trim() !== "") {
+            setItens((prev) => [...prev, itemNome]);
+            setItemNome("");
+        }
+    };
+
+    const handleDeleteDisciplina = async () => {
+        const disciplinaId = localStorage.getItem("disciplinaId");
+
+        try {
+            const response = await fetch(
+                `http://localhost:3000/cadeiras/${disciplinaId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: localStorage.token,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Erro ao excluir disciplina");
+            }
+
+            // Remove os dados do localStorage
+            localStorage.removeItem("disciplinaId");
+            localStorage.removeItem("disciplinaNome");
+
+            // Redireciona para a página do semestre
+            router.push(`/semestre/${localStorage.getItem("semestreId")}`);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.card}>
+                <h1 className={styles.title}>
+                    {nomeDisciplina || "Carregando..."}
+                </h1>
+
+                {error && <p className={styles.error}>{error}</p>}
+
+                <div className={styles.form}>
+                    <input
+                        type="text"
+                        value={itemNome}
+                        onChange={(e) => setItemNome(e.target.value)}
+                        placeholder="Nome do item"
+                        className={styles.input}
+                    />
+                    <button
+                        onClick={handleAddItem}
+                        className={`${styles.button} ${styles.addButton}`}
+                    >
+                        Adicionar Item
+                    </button>
+                </div>
+
+                <h2 className={styles.subTitle}>Itens cadastrados:</h2>
+                <ul>
+                    {itens.length === 0 ? (
+                        <li className={styles.semestreListItem}>
+                            Nenhum item cadastrado.
+                        </li>
+                    ) : (
+                        itens.map((item, index) => (
+                            <li key={index} className={styles.semestreListItem}>
+                                {item}
+                            </li>
+                        ))
+                    )}
+                </ul>
+
+                <div className={styles.actions}>
+                    <button
+                        onClick={() =>
+                            router.push(
+                                `/semestre/${localStorage.getItem("semestreId")}`
+                            )
+                        }
+                        className={`${styles.button} ${styles.backButton}`}
+                    >
+                        Voltar
+                    </button>
+                    <button
+                        onClick={handleDeleteDisciplina}
+                        className={`${styles.button} ${styles.deleteButton}`}
+                    >
+                        Excluir Disciplina
+                    </button>
+                </div>
+            </div>
         </div>
-
-        <h2 className={styles.subTitle}>Itens cadastrados:</h2>
-        <ul>
-          {itens.length === 0 ? (
-            <li className={styles.semestreListItem}>Nenhum item cadastrado.</li>
-          ) : (
-            itens.map((item, index) => (
-              <li key={index} className={styles.semestreListItem}>
-                {item}
-              </li>
-            ))
-          )}
-        </ul>
-
-        <button onClick={() => router.push(`/semestre/${router.query.semestre}`)} className={`${styles.button} ${styles.backButton}`}>
-          Voltar
-        </button>
-      </div>
-    </div>
-  );
+    );
 }

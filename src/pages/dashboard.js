@@ -13,16 +13,22 @@ export default function Dashboard() {
                     "Content-Type": "application/json",
                 },
             });
-
+    
             const data = await response.json();
-
+    
             if (!response.ok) {
                 throw new Error(data.message || "Erro ao acessar cursos");
             }
-
-            localStorage.setItem("idCurso", data[0].id);
-            localStorage.setItem("nomeCurso", data[0].nome);
-            router.push("/curso");
+    
+            // Verifica se há cursos e pega o primeiro
+            if (data.length > 0) {
+                const curso = data[0]; // Pega o primeiro curso
+                localStorage.setItem("idCurso", curso.id);
+                localStorage.setItem("nomeCurso", curso.nome);
+                router.push("/curso");
+            } else {
+                throw new Error("Nenhum curso encontrado.");
+            }
         } catch (error) {
             console.log(error.message);
         }

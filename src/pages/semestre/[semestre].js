@@ -1,36 +1,65 @@
-import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import styles from "../../styles/course.module.css";
 
 export default function SemestreDetalhes() {
     const router = useRouter();
-    const { id } = router.query; // Obtém o ID do semestre da URL
     const [semestreNome, setSemestreNome] = useState("");
+    const [semestreId, setSemestreId] = useState("");
     const [disciplinas, setDisciplinas] = useState([]);
     const [disciplinaNome, setDisciplinaNome] = useState("");
     const [error, setError] = useState("");
 
+    // Carregar o ID e o nome do semestre do localStorage
     useEffect(() => {
-        if (id) {
-            fetch(`http://localhost:3000/cadeiras/semestre/${id}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: localStorage.token,
-                },
-            })
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data.error) {
-                        setError(data.error);
-                    } else {
-                        setSemestreNome(data.nome); // Captura o nome do semestre
-                        setDisciplinas(data.disciplinas || []); // Assumindo que a API retorna { nome, disciplinas }
-                    }
-                })
-                .catch(() => setError("Erro ao carregar disciplinas"));
+        const id = localStorage.getItem("semestreId");
+        const nome = localStorage.getItem("semestreNome");
+
+        if (id && nome) {
+            setSemestreId(id);
+            setSemestreNome(nome);
+        } else {
+            setError("Semestre não encontrado.");
+            router.push("/curso"); // Redireciona de volta se não houver dados
         }
-    }, [id]);
+    }, [router]);
+
+    // Carregar as disciplinas do semestre
+    useEffect(() => {
+        if (!semestreId) return; // Sai se o ID do semestre não estiver disponível
+
+        fetch(`http://localhost:3000/cadeiras/semestre/${semestreId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: localStorage.token,
+            },
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.error) {
+                    setError(data.error);
+                } else {
+                    setDisciplinas(data); // Define a lista de disciplinas
+                }
+            })
+            .catch(() => setError("Erro ao carregar disciplinas"));
+    }, [semestreId]); // Executa sempre que o ID do semestre mudar
+
+    // Função para gerar o código da disciplina
+    const gerarCodigoDisciplina = (nome) => {
+        // Pega as iniciais do nome da disciplina
+        const iniciais = nome
+            .split(" ")
+            .map((palavra) => palavra[0].toUpperCase())
+            .join("");
+
+        // Gera um número sequencial baseado no número de disciplinas já cadastradas
+        const numeroSequencial = disciplinas.length + 1;
+
+        // Retorna o código no formato "INICIAIS + NÚMERO" (ex: "ES101")
+        return `${iniciais}${numeroSequencial.toString().padStart(3, "0")}`;
+    };
 
     const handleAddDisciplina = async () => {
         if (disciplinaNome.trim() === "") {
@@ -39,17 +68,21 @@ export default function SemestreDetalhes() {
         }
 
         try {
+            // Gera o código da disciplina
+            const codigo = gerarCodigoDisciplina(disciplinaNome);
+
             const response = await fetch(
-                `http://localhost:3000/cadeiras/semestre/${id}`,
+                `http://localhost:3000/cadeiras/semestre/${semestreId}`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem(
-                            "token"
-                        )}`,
+                        Authorization: localStorage.token,
                     },
-                    body: JSON.stringify({ nome: disciplinaNome }),
+                    body: JSON.stringify({
+                        nome: disciplinaNome,
+                        codigo: codigo, // Código gerado automaticamente
+                    }),
                 }
             );
 
@@ -59,7 +92,7 @@ export default function SemestreDetalhes() {
                 throw new Error(data.message || "Erro ao adicionar disciplina");
             }
 
-            setDisciplinas((prev) => [...prev, data]);
+            setDisciplinas((prev) => [...prev, data]); // Adiciona a nova disciplina à lista
             setDisciplinaNome("");
             setError("");
         } catch (error) {
@@ -68,7 +101,40 @@ export default function SemestreDetalhes() {
     };
 
     const handleNavigateToDisciplina = (disciplina) => {
-        router.push(`/disciplina/${encodeURIComponent(disciplina)}`);
+        // Armazena o ID e o nome da disciplina no localStorage
+        localStorage.setItem("disciplinaId", disciplina.id);
+        localStorage.setItem("disciplinaNome", disciplina.nome);
+
+        // Navega para a página da disciplina
+        router.push(`/disciplina/${disciplina.id}`);
+    };
+
+    const handleDeleteSemestre = async () => {
+        try {
+            const response = await fetch(
+                `http://localhost:3000/semestres/${semestreId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: localStorage.token,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Erro ao excluir semestre");
+            }
+
+            // Remove os dados do localStorage
+            localStorage.removeItem("semestreId");
+            localStorage.removeItem("semestreNome");
+
+            // Redireciona para a página de curso
+            router.push("/curso");
+        } catch (error) {
+            setError(error.message);
+        }
     };
 
     return (
@@ -103,26 +169,34 @@ export default function SemestreDetalhes() {
                             Nenhuma disciplina cadastrada.
                         </li>
                     ) : (
-                        disciplinas.map((disciplina, index) => (
+                        disciplinas.map((disciplina) => (
                             <li
-                                key={index}
+                                key={disciplina.id}
                                 className={styles.semestreListItem}
                                 onClick={() =>
-                                    handleNavigateToDisciplina(disciplina.nome)
+                                    handleNavigateToDisciplina(disciplina)
                                 }
                             >
-                                {disciplina.nome}
+                                {disciplina.nome} - {disciplina.codigo}
                             </li>
                         ))
                     )}
                 </ul>
 
-                <button
-                    onClick={() => router.push("/curso")}
-                    className={`${styles.button} ${styles.backButton}`}
-                >
-                    Voltar
-                </button>
+                <div className={styles.actions}>
+                    <button
+                        onClick={() => router.push("/curso")}
+                        className={`${styles.button} ${styles.backButton}`}
+                    >
+                        Voltar
+                    </button>
+                    <button
+                        onClick={handleDeleteSemestre}
+                        className={`${styles.button} ${styles.deleteButton}`}
+                    >
+                        Excluir Semestre
+                    </button>
+                </div>
             </div>
         </div>
     );
