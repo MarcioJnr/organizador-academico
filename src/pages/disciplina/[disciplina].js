@@ -34,7 +34,7 @@ export default function DisciplinaDetalhes() {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/cadeiras/${disciplinaId}`,
+                `https://organizador-academico-be.onrender.com/cadeiras/${disciplinaId}`,
                 {
                     method: "DELETE",
                     headers: {
