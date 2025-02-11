@@ -27,7 +27,7 @@ export default function Curso() {
     // Carregar semestres automaticamente quando o curso for carregado
     useEffect(() => {
         if (selectedCurso?.id) {
-            fetch(`http://localhost:3000/semestres/curso/${selectedCurso.id}`, {
+            fetch(`https://organizador-academico-be.onrender.com/semestres/curso/${selectedCurso.id}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -59,7 +59,7 @@ export default function Curso() {
 
         try {
             const response = await fetch(
-                `http://localhost:3000/semestres/curso/${selectedCurso.id}`,
+                `https://organizador-academico-be.onrender.com/semestres/curso/${selectedCurso.id}`,
                 {
                     method: "POST",
                     headers: {

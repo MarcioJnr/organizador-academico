@@ -28,7 +28,7 @@ export default function SemestreDetalhes() {
     useEffect(() => {
         if (!semestreId) return; // Sai se o ID do semestre não estiver disponível
 
-        fetch(`http://localhost:3000/cadeiras/semestre/${semestreId}`, {
+        fetch(`https://organizador-academico-be.onrender.com/cadeiras/semestre/${semestreId}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -72,7 +72,7 @@ export default function SemestreDetalhes() {
             const codigo = gerarCodigoDisciplina(disciplinaNome);
 
             const response = await fetch(
-                `http://localhost:3000/cadeiras/semestre/${semestreId}`,
+                `https://organizador-academico-be.onrender.com/cadeiras/semestre/${semestreId}`,
                 {
                     method: "POST",
                     headers: {
@@ -112,7 +112,7 @@ export default function SemestreDetalhes() {
     const handleDeleteSemestre = async () => {
         try {
             const response = await fetch(
-                `http://localhost:3000/semestres/${semestreId}`,
+                `https://organizador-academico-be.onrender.com/semestres/${semestreId}`,
                 {
                     method: "DELETE",
                     headers: {

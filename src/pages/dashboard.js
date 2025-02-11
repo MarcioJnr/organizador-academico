@@ -6,7 +6,7 @@ export default function Dashboard() {
 
     const handleNavigateToCourse = async () => {
         try {
-            const response = await fetch("http://localhost:3000/cursos", {
+            const response = await fetch("https://organizador-academico-be.onrender.com/cursos", {
                 method: "GET",
                 headers: {
                     Authorization: localStorage.token,
